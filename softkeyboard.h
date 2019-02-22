@@ -18,6 +18,7 @@
 #include <QFont>
 #include <QTimer>
 #include <QString>
+#define CANDIDATEWORDNUM 6   //中文输入 默认6个候选词
 
 class SoftKeyboard : public QWidget
 {
@@ -89,8 +90,8 @@ private:
     //第二部分 输入显示区域  中文输入特有区域
     QWidget *inputDisplayArea;//键盘的输入显示区域
     QLineEdit *candidateLetter;//中文输入时对应的字母显示
-    QWidget *candidateWordArea;//候选词区域 在上面布局中有六个候选词和翻页按钮
-    QPushButton *candidateWordBtn[6];//中文输入时的候选词
+    QWidget *candidateWordArea;//候选词区域 包括候选词和翻页按钮
+    QPushButton *candidateWordBtn[CANDIDATEWORDNUM];//中文输入时的候选词
     QPushButton *prePageBtn;//前一页
     QPushButton *nextPageBtn;//后一页
     //第三部分 键盘按键区域

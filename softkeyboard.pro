@@ -19,3 +19,4 @@ HEADERS  += \
     softkeyboard.h
 
 FORMS +=
+

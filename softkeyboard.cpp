@@ -10,7 +10,6 @@
 #define PINYINFILEPATH  "./ChinesePinyin"
 #define FONTFAMILY "黑体"  //字体族
 #define FONTSIZE 16      //字体大小
-#define CANDIDATEWORDNUM 6   //中文输入 默认6个候选词
 
 SoftKeyboard::SoftKeyboard(QWidget *parent) : QWidget(parent)
 {
@@ -81,7 +80,7 @@ void SoftKeyboard::readDictionary()
             }
             else//单个汉字
             {
-                chinesePinyin.insert(regExp.cap(0),lineText.left(pinyinPosition));//往哈希表插入键值对
+                chinesePinyin.insert(linePinyin,lineChinese);//往哈希表插入键值对
             }
         }
     }
@@ -192,31 +191,49 @@ void SoftKeyboard::splitPhrase(QString phrase,QString chinese)
  */
 void SoftKeyboard::initStyleSheet()
 {
-    //当前有三套皮肤，后期可以再添加
+    //当前有三套皮肤，后期可以再修改添加
     //按键和候选词widget区域样式
-    keyAndCandidateAreaStyle<<"background-color:black;color:white;"
-                           <<"background-color:#89C8E7;color:black;"
-                           <<"background-color:#F8859F;color:black;";
-    //普通按键的样式 border-radius:10px;
-    commonKeyStyle<<"QPushButton{background-color:gray;border-radius:4px;}"//正常样式
-                    "QPushButton:pressed{background-color:orange;border-radius:4px;}"//按下样式
-                    "QPushButton:focus{outline:none;}"//去除虚线框
-                           <<"QPushButton{background-color:#D0DFF0;border-radius:4px;}"
-                             "QPushButton:pressed{background-color:orange;border-radius:4px;}"
-                             "QPushButton:focus{outline:none;}"//去除虚线框
-                           <<"QPushButton{background-color:#F6CED6;border-radius:10px;}"
-                             "QPushButton:pressed{background-color:orange;border-radius:10px;}"
-                             "QPushButton:focus{outline:none;}";//去除虚线框
+    keyAndCandidateAreaStyle.append(
+                "background-color:black;color:white;"
+                );
+    keyAndCandidateAreaStyle.append(
+                "background-color:#89C8E7;color:black;"
+                );
+    keyAndCandidateAreaStyle.append(
+                "background-color:#F8859F;color:black;"
+                );
+    //普通按键的样式
+    commonKeyStyle.append(
+                "QPushButton{background-color:gray;border-radius:4px;}"//正常样式
+                "QPushButton:pressed{background-color:orange;border-radius:4px;}"//按下样式
+                "QPushButton:focus{outline:none;}"//去除虚线框
+                );
+    commonKeyStyle.append(
+                "QPushButton{background-color:#D0DFF0;border-radius:4px;}"
+                "QPushButton:pressed{background-color:orange;border-radius:4px;}"
+                "QPushButton:focus{outline:none;}"
+                );
+    commonKeyStyle.append(
+                "QPushButton{background-color:#F6CED6;border-radius:10px;}"
+                "QPushButton:pressed{background-color:orange;border-radius:10px;}"
+                "QPushButton:focus{outline:none;}"
+                );
     //特殊按键的样式
-    specialKeyStyle<<"QPushButton{background-color:#5D3F3F;border-radius:2px;}"
-                     "QPushButton:pressed{background-color:orange;border-radius:2px;}"
-                     "QPushButton:focus{outline:none;}"//去除虚线框
-                          <<"QPushButton{background-color:#94B6EF;border-radius:2px;}"
-                             "QPushButton:pressed{background-color:orange;border-radius:2px;}"
-                            "QPushButton:focus{outline:none;}"//去除虚线框
-                          <<"QPushButton{background-color:#FFA3B8;border-radius:8px;}"
-                             "QPushButton:pressed{background-color:orange;border-radius:8px;}"
-                            "QPushButton:focus{outline:none;}";//去除虚线框
+    specialKeyStyle.append(
+                "QPushButton{background-color:#5D3F3F;border-radius:2px;}"
+                "QPushButton:pressed{background-color:orange;border-radius:2px;}"
+                "QPushButton:focus{outline:none;}"
+                );
+    specialKeyStyle.append(
+                "QPushButton{background-color:#94B6EF;border-radius:2px;}"
+                "QPushButton:pressed{background-color:orange;border-radius:2px;}"
+                "QPushButton:focus{outline:none;}"
+                );
+    specialKeyStyle.append(
+                "QPushButton{background-color:#FFA3B8;border-radius:8px;}"
+                "QPushButton:pressed{background-color:orange;border-radius:8px;}"
+                "QPushButton:focus{outline:none;}"
+                );
 }
 /*
  *@author:  缪庆瑞
@@ -401,7 +418,7 @@ void SoftKeyboard::initSpecialBtn()
     deleteBtn->setText("del");
     //删除按钮按下即会删除
     connect(deleteBtn,SIGNAL(pressed()),this,SLOT(deleteTextSlot()));
-    connect(deleteBtn,SIGNAL(released()),this,SLOT(closeDelTimer()));
+    connect(deleteBtn,SIGNAL(released()),this,SLOT(closeDelTimer()));//焦点离开按钮也会触发该信号
     delTimer = new QTimer(this);
     connect(delTimer,SIGNAL(timeout()),this,SLOT(deleteTextSlot()));
 
@@ -463,7 +480,7 @@ void SoftKeyboard::initKeyboardStyle(int num)
 {
     if(num>=keyAndCandidateAreaStyle.size())
     {
-        qDebug()<<"暂无该套皮肤";
+        qDebug()<<"该索引皮肤不存在,已采用默认皮肤设置";
         return;//避免超出list长度，程序异常
     }
     //用于候选词和按键widget区域样式
@@ -498,8 +515,9 @@ void SoftKeyboard::setLetterLow()
 {
     QStringList letterLowList;
     letterLowList<<"1"<<"2"<<"3"<<"4"<<"5"<<"6"<<"7"<<"8"<<"9"<<"0"
-                 <<"q"<<"w"<<"e"<<"r"<<"t"<<"y"<<"u"<<"i"<<"o"<<"p"<<"a"<<"s"<<"d"
-                 <<"f"<<"g"<<"h"<<"j"<<"k"<<"l"<<"z"<<"x"<<"c"<<"v"<<"b"<<"n"<<"m";
+                 <<"q"<<"w"<<"e"<<"r"<<"t"<<"y"<<"u"<<"i"<<"o"<<"p"
+                 <<"a"<<"s"<<"d"<<"f"<<"g"<<"h"<<"j"<<"k"<<"l"
+                 <<"z"<<"x"<<"c"<<"v"<<"b"<<"n"<<"m";
     for(int i=0;i<36;i++)
     {
         numberLetterBtn[i]->setText(letterLowList.at(i));
@@ -514,8 +532,9 @@ void SoftKeyboard::setLetterUpper()
 {
     QStringList letterUpperList;
     letterUpperList<<"1"<<"2"<<"3"<<"4"<<"5"<<"6"<<"7"<<"8"<<"9"<<"0"
-                   <<"Q"<<"W"<<"E"<<"R"<<"T"<<"Y"<<"U"<<"I"<<"O"<<"P"<<"A"<<"S"<<"D"
-                   <<"F"<<"G"<<"H"<<"J"<<"K"<<"L"<<"Z"<<"X"<<"C"<<"V"<<"B"<<"N"<<"M";
+                   <<"Q"<<"W"<<"E"<<"R"<<"T"<<"Y"<<"U"<<"I"<<"O"<<"P"
+                   <<"A"<<"S"<<"D"<<"F"<<"G"<<"H"<<"J"<<"K"<<"L"
+                   <<"Z"<<"X"<<"C"<<"V"<<"B"<<"N"<<"M";
     for(int i=0;i<36;i++)
     {
         numberLetterBtn[i]->setText(letterUpperList.at(i));
@@ -548,9 +567,9 @@ void SoftKeyboard::setSymbolsCH()
     QStringList symbolsCHList;
     //中文状态下的字符用tr编码转换，实现Qt4的兼容，Qt4使用QTextCodec实现utf-8编码中文
     symbolsCHList<<tr("！")<<tr("@")<<tr("#")<<tr("￥")<<tr("%")<<tr("……")<<tr("&&")<<tr("*")<<tr("（")<<tr("）")
-                <<tr("【")<<tr("】")<<tr("{")<<tr("}")<<tr("《")<<tr("》")<<tr("+")<<tr("-")<<tr("——")<<tr("=")
+                <<tr("【")<<tr("】")<<tr("{")<<tr("}")<<tr("《")<<tr("》")<<tr("+")<<tr("-")<<tr("—")<<tr("=")
                 <<tr("·")<<tr("~")<<tr("|")<<tr("、")<<tr("’")<<tr("‘")<<tr("“")<<tr("”")<<tr("：")
-                <<tr("；")<<tr("？")<<tr("★")<<tr("℃")<<tr("囍")<<tr("↑")<<tr("↓");
+                <<tr("；")<<tr("？")<<tr("♀")<<tr("℃")<<tr("★")<<tr("↑")<<tr("↓");
     for(int i=0;i<36;i++)
     {
         numberLetterBtn[i]->setText(symbolsCHList.at(i));
@@ -577,7 +596,7 @@ void SoftKeyboard::matchChinese(QString pinyin)
 void SoftKeyboard::displayCandidateWord(int page)
 {
     int hanziCount = hanzi.size();//匹配的汉字列表个数
-    if(page == 1)//当显示第一页是向前翻页按钮不可点击
+    if(page == 1)//当显示第一页时向前翻页按钮不可点击
     {
         prePageBtn->setEnabled(false);
     }
@@ -593,12 +612,13 @@ void SoftKeyboard::displayCandidateWord(int page)
     {
         nextPageBtn->setEnabled(true);
     }
-    //因为哈希表获取指定的key对应的值列表时，是按照后插入的先获取（后进先出），所以常见字在后面，
-    //需要从列表的最后一个反向获取显示
+    /*因为哈希表获取指定的key对应的值列表时,是按照后插入的先获取(后进先出),
+     * 所以常见字在后面,这里处理为从列表的最后一个反向获取显示
+     */
     int num = hanziCount-1-(page-1)*CANDIDATEWORDNUM;
-    for(int i=0;i<CANDIDATEWORDNUM;i++)//每页6个候选字词
+    for(int i=0;i<CANDIDATEWORDNUM;i++)//每页默认6个候选字词
     {
-        if((page-1)*CANDIDATEWORDNUM+i<hanziCount)
+        if(num>=i)
         {
             candidateWordBtn[i]->setText(hanzi.at(num-i));
         }
@@ -611,7 +631,7 @@ void SoftKeyboard::displayCandidateWord(int page)
 /*
  *@author:  缪庆瑞
  *@date:    2017.5.5
- *@brief:   设置输入缓存区行编辑框的文本
+ *@brief:   设置输入缓存区行编辑框的文本,用来在外部为缓存区设置初始内容
  */
 void SoftKeyboard::setInputText(QString inputText)
 {
@@ -653,7 +673,7 @@ void SoftKeyboard::numberLetterBtnSlot()
             candidateLetter->setFocus();
             this->matchChinese(candidateLetter->text());//匹配中文
             this->displayCandidateWord(pageCount);//显示候选词，默认第一页
-            prePageBtn->setEnabled(false);//向前翻页不可点击
+            //prePageBtn->setEnabled(false);//向前翻页不可点击
         }
     }
 }
@@ -779,6 +799,10 @@ void SoftKeyboard::deleteTextSlot()
     {
         //lineEdit->setFocus();
         lineEdit->backspace();
+        if(lineEdit->text().isEmpty())
+        {
+            delTimer->stop();//删完后主动停止定时器
+        }
     }
 }
 /*
@@ -805,7 +829,7 @@ void SoftKeyboard::closeDelTimer()
  */
 void SoftKeyboard::changeSkinSlot()
 {
-    if(skinNum == 2)
+    if(skinNum == keyAndCandidateAreaStyle.size()-1)
     {
         skinNum = 0;
     }
@@ -819,7 +843,7 @@ void SoftKeyboard::changeSkinSlot()
 /*
  *@author:  缪庆瑞
  *@date:    2016.12.26
- *@brief:   切换符号界面 中英文输入下的部分符号不同
+ *@brief:   切换数字字母/符号界面 中英文输入下的部分符号不同
  */
 void SoftKeyboard::changeLetterSymbolSlot()
 {
