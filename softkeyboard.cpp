@@ -18,7 +18,6 @@ SoftKeyboard::SoftKeyboard(QWidget *parent) : QWidget(parent)
     部件或子布局的推荐大小决定，所以设置窗口的最小大小，可以避免布局推荐大小过大，整个窗口无法缩小,只能
     通过setFixesize来固定不可变的大小*/
     this->setMinimumSize(500,300);
-    //this->showFullScreen();
     this->resize(800,480);//默认大小
     //初始化ui显示
     this->initStyleSheet();
@@ -26,7 +25,11 @@ SoftKeyboard::SoftKeyboard(QWidget *parent) : QWidget(parent)
     this->initSecondArea();
     this->initThirdArea();
     this->setLetterLow();//默认显示字母界面 小写
-    this->initKeyboardStyle(0);
+    this->selectKeyboardStyle(0);//选择皮肤
+    skinNum = 0;
+    isENInput = true;//初始化为英文输入
+    isLetterInput = true;//初始化为字母界面
+    isLetterLower = true;//小写字母
     //整体垂直布局
     globalVLayout = new QVBoxLayout(this);
     globalVLayout->setMargin(2);
@@ -36,10 +39,6 @@ SoftKeyboard::SoftKeyboard(QWidget *parent) : QWidget(parent)
     globalVLayout->addWidget(inputDisplayArea,1);
     globalVLayout->addWidget(keyBoardArea,5);
 
-    skinNum = 0;
-    isENInput = true;//初始化为英文输入
-    isLetterInput = true;//初始化为字母界面
-    isLetterLower = true;//小写字母
     readDictionary();//读拼音字典
 }
 
@@ -278,7 +277,7 @@ void SoftKeyboard::initFirstArea()
  */
 void SoftKeyboard::initSecondArea()
 {
-    QFont font(tr(FONTFAMILY),FONTSIZE);
+    QFont font(tr(FONTFAMILY),FONTSIZE-2);
     inputDisplayArea = new QWidget();
     //inputDisplayArea->setStyleSheet("background-color:green;");
     inputDisplayArea->setVisible(false);//该区域初始化时是不显示的 中文输入时特有区域
@@ -290,14 +289,14 @@ void SoftKeyboard::initSecondArea()
     //candidateLetter->setStyleSheet("background-color:gray;");
     candidateLetter->setFrame(false);//不显示边框
     connect(candidateLetter,SIGNAL(textChanged(QString)),this,SLOT(candidateLetterChangedSlot(QString)));
-    candidateLetter->setFont(QFont(FONTFAMILY,FONTSIZE));
+    candidateLetter->setFont(font);
     candidateLetter->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Preferred);//水平方向固定大小
     //candidateLetter->setStyleSheet("text-align:left;");//按钮设置显示文本居左，没有直接方法，使用样式设置
 
     candidateWordArea = new QWidget();//在其上布局候选词和翻页按钮
     //candidateWordArea->setStyleSheet("background-color:gray;");
     QHBoxLayout *hBoxLayout = new QHBoxLayout(candidateWordArea);
-    hBoxLayout->setContentsMargins(9,5,9,0);//布局下方间隔为0，紧挨着键盘输入按键
+    hBoxLayout->setContentsMargins(4,2,4,0);//布局下方间隔为0，紧挨着键盘输入按键
 
     //默认有6个待选词
     for(int i=0;i<CANDIDATEWORDNUM;i++)
@@ -313,14 +312,14 @@ void SoftKeyboard::initSecondArea()
     prePageBtn = new QPushButton();
     prePageBtn->setFlat(true);
     prePageBtn->setFont(font);
-    prePageBtn->setText("<-");
-    prePageBtn->setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Preferred);
+    prePageBtn->setText("<");
+    prePageBtn->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Preferred);
     connect(prePageBtn,SIGNAL(clicked()),this,SLOT(candidateWordPrePageSlot()));
     nextPageBtn = new QPushButton();
     nextPageBtn->setFlat(true);
     nextPageBtn->setFont(font);
-    nextPageBtn->setText("->");
-    nextPageBtn->setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Preferred);
+    nextPageBtn->setText(">");
+    nextPageBtn->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Preferred);
     connect(nextPageBtn,SIGNAL(clicked()),this,SLOT(candidateWordNextPageSlot()));
     hBoxLayout->addWidget(prePageBtn);
     hBoxLayout->addWidget(nextPageBtn);
@@ -350,7 +349,7 @@ void SoftKeyboard::initThirdArea()
         secondRowHLayout->addWidget(numberLetterBtn[i]);
     }
     QHBoxLayout *thirdRowHLayout = new QHBoxLayout();
-    thirdRowHLayout->setContentsMargins(20,2,20,2);
+    thirdRowHLayout->setContentsMargins(20,0,20,0);
     for(int i=20;i<29;i++)//布局第三排按键
     {
         thirdRowHLayout->addWidget(numberLetterBtn[i]);
@@ -460,7 +459,7 @@ void SoftKeyboard::initSpecialBtn()
     chOrEnBtn = new QPushButton();
     chOrEnBtn->setFont(font);
     chOrEnBtn->setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Preferred);
-    chOrEnBtn->setText(tr("   英   "));
+    chOrEnBtn->setText(tr("  英  "));
     //chOrEnBtn->setStyleSheet("background-color:gray;");
     connect(chOrEnBtn,SIGNAL(clicked()),this,SLOT(changeChEnSlot()));
 
@@ -473,10 +472,10 @@ void SoftKeyboard::initSpecialBtn()
 /*
  *@author:  缪庆瑞
  *@date:    2017.1.12
- *@brief:   初始化键盘样式，所有按键及区域背景的样式在此设置
+ *@brief:   选择键盘样式，所有按键及区域背景的样式在此设置
  *@param:   num：确定用哪一套样式（皮肤）
  */
-void SoftKeyboard::initKeyboardStyle(int num)
+void SoftKeyboard::selectKeyboardStyle(int num)
 {
     if(num>=keyAndCandidateAreaStyle.size())
     {
@@ -621,10 +620,12 @@ void SoftKeyboard::displayCandidateWord(int page)
         if(num>=i)
         {
             candidateWordBtn[i]->setText(hanzi.at(num-i));
+            candidateWordBtn[i]->setEnabled(true);
         }
         else
         {
-            candidateWordBtn[i]->setText("");//清除上一页的缓存
+            candidateWordBtn[i]->setText(" ");//清除上一页的缓存
+            candidateWordBtn[i]->setEnabled(false);
         }
     }
 }
@@ -837,7 +838,7 @@ void SoftKeyboard::changeSkinSlot()
     {
         skinNum++;
     }
-    initKeyboardStyle(skinNum);
+    selectKeyboardStyle(skinNum);
     lineEdit->setFocus();//将焦点返回到行编辑栏，避免某些按钮有焦点时会自动设置样式
 }
 /*
@@ -901,7 +902,7 @@ void SoftKeyboard::changeChEnSlot()
     if(isENInput)
     {
         isENInput = false;//切换为中文输入
-        chOrEnBtn->setText(tr("   中   "));
+        chOrEnBtn->setText(tr("  中  "));
         commaBtn->setText(tr("，"));
         periodBtn->setText(tr("。"));
         if(isLetterInput)//字母界面 切换到中文输入时，默认小写
@@ -917,7 +918,7 @@ void SoftKeyboard::changeChEnSlot()
     else
     {
         isENInput = true;//切换为英文输入
-        chOrEnBtn->setText(tr("英"));
+        chOrEnBtn->setText(tr("  英  "));
         commaBtn->setText(",");
         periodBtn->setText(".");
         if(!isLetterInput)//字符界面

@@ -28,15 +28,8 @@ public:
     ~SoftKeyboard();
     void readDictionary();//读拼音字典，将汉字与拼音的对应存放到hash表中
     void splitPhrase(QString phrase,QString chinese);//拆分拼音词组
-    void initStyleSheet();//初始化可选样式表，用于不同的皮肤展示
-    void initFirstArea();//初始化第一部分 输入缓存，确定 退出
-    void initSecondArea();//初始化第二部分 输入显示区域
-    void initThirdArea();//初始化第三部分 按键区域
 
-    void initNumberLetterBtn();//初始化数字字母按键，分配空间，连接信号与槽
-    void initSpecialBtn();//初始化特殊功能按键，诸如大小写切换，删除按键等
-    void initKeyboardStyle(int num);//初始化键盘样式
-
+    void selectKeyboardStyle(int num);//选择键盘样式
     void setLetterLow();//设置小写字母显示
     void setLetterUpper();//设置大写字母显示
     void setSymbolsEN();//设置符号（英文状态）
@@ -46,6 +39,14 @@ public:
     void displayCandidateWord(int page);//显示指定页的候选词
 
     void setInputText(QString inputText);//设置输入缓冲区行编辑框文本
+
+private:
+    void initStyleSheet();//初始化可选样式表，用于不同的皮肤展示
+    void initFirstArea();//初始化第一部分 输入缓存，确定 退出
+    void initSecondArea();//初始化第二部分 输入显示区域
+    void initThirdArea();//初始化第三部分 按键区域
+    void initNumberLetterBtn();//初始化数字字母按键，分配空间，连接信号与槽
+    void initSpecialBtn();//初始化特殊功能按键，诸如大小写切换，删除按键等
 
 signals:
     void sendText(QString text);//以信号的形式将输入文本发出去
