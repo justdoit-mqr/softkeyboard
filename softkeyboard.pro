@@ -13,10 +13,13 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-    softkeyboard.cpp
+    softkeyboard.cpp \
+    form.cpp
 
 HEADERS  += \
-    softkeyboard.h
+    softkeyboard.h \
+    form.h
 
-FORMS +=
+FORMS += \
+    form.ui
 
