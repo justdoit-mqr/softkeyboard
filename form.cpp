@@ -27,20 +27,15 @@ bool Form::eventFilter(QObject *watched, QEvent *event)
             QPoint point = this->pos();
             if(watched == ui->lineEdit)
             {
-                disconnect(softKeyboard,SIGNAL(sendText(QString)),0,0);
-                softKeyboard->setTextBufferAreaVisibled(false);
-                softKeyboard->setCurrentLineEdit(ui->lineEdit);
+                softKeyboard->hideInputBufferArea(ui->lineEdit);
                 softKeyboard->resize(600,320);
                 softKeyboard->move(point+ui->lineEdit->pos());
                 softKeyboard->show();
             }
             else if(watched == ui->lineEdit_2)
             {
-                disconnect(softKeyboard,SIGNAL(sendText(QString)),0,0);
-                connect(softKeyboard,SIGNAL(sendText(QString)),this,SLOT(setLineEdit_2Text(QString)));
-                softKeyboard->setTextBufferAreaVisibled(true);
-                softKeyboard->setCurrentLineEdit(NULL);
-                //softKeyboard->setTitleLabelText("please input:");
+                connect(softKeyboard,SIGNAL(sendInputBufferAreaText(QString)),this,SLOT(setLineEdit_2Text(QString)));
+                softKeyboard->showInputBufferArea("Please Input:");
                 softKeyboard->resize(600,320);
                 softKeyboard->move(point+ui->lineEdit_2->pos());
                 softKeyboard->show();
